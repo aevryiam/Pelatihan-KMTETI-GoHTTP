@@ -6,5 +6,5 @@ type Employee struct {
     NIK             string `json:"nik" bson:"nik"`
     LastEducation   string `json:"last_education" bson:"last_education"`
     JoinDate        string `json:"join_date" bson:"join_date"`
-    EmploymentStatus string `json:"employment_status" bson:"employment_status"` // "KONTRAK", "TETAP"
+    EmploymentStatus string `json:"employment_status" bson:"employment_status"`
 }
