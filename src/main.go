@@ -1,15 +1,18 @@
 package main
 
 import (
-	"Pelatihan-KMTETI-GoHTTP/api"
-	"log"
-	"net/http"
+    "log"
+    "net/http"
+    "github.com/gorilla/mux"
+    "Pelatihan-KMTETI-GoHTTP/api"
 )
 
 func main() {
-	router := api.SetupRouter()
-	log.Println("Server started at :8080")
-	if err := http.ListenAndServe(":8080", router); err != nil {
-		log.Fatal(err)
-	}
+    r := mux.NewRouter()
+    api.RegisterRoutes(r)
+
+    log.Println("Server is running on port 8080")
+    if err := http.ListenAndServe(":8080", r); err != nil {
+        log.Fatal(err)
+    }
 }
