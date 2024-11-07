@@ -39,19 +39,15 @@ func GetAllBooks(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetBookDetail(w http.ResponseWriter, r *http.Request) {
-    // Implement the logic to get book details by ID
 }
 
 func AddBook(w http.ResponseWriter, r *http.Request) {
-    // Implement the logic to add a new book
 }
 
 func UpdateBook(w http.ResponseWriter, r *http.Request) {
-    // Implement the logic to update stock and price of a book
 }
 
 func DeleteBook(w http.ResponseWriter, r *http.Request) {
-    // Implement the logic to delete a book by ID
 }
 
 func GetAllEmployees(w http.ResponseWriter, r *http.Request) {

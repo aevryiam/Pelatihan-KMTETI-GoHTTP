@@ -1,7 +1,6 @@
 package api
 
 import (
-    //"net/http"
     "github.com/gorilla/mux"
     "Pelatihan-KMTETI-GoHTTP/src/service"
 )
