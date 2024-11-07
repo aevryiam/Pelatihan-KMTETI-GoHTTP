@@ -7,6 +7,7 @@ import (
     "Pelatihan-KMTETI-GoHTTP/src/models"
     "go.mongodb.org/mongo-driver/bson"
     "go.mongodb.org/mongo-driver/mongo"
+	"github.com/gorilla/mux"
     "context"
 )
 
@@ -20,7 +21,7 @@ func init() {
 }
 
 func GetAllBooks(w http.ResponseWriter, r *http.Request) {
-    var books []models.Book
+    var books []models.BookResponse
     cursor, err := bookCollection.Find(context.TODO(), bson.D{})
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -31,7 +32,11 @@ func GetAllBooks(w http.ResponseWriter, r *http.Request) {
     for cursor.Next(context.TODO()) {
         var book models.Book
         cursor.Decode(&book)
-        books = append(books, book)
+        books = append(books, models.BookResponse{
+			Title : book.Title,
+			Author : book.Author,
+			Price : book.Price,
+		})
     }
     
     w.Header().Set("Content-Type", "application/json")
@@ -39,19 +44,75 @@ func GetAllBooks(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetBookDetail(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+    id := vars["id"]
+
+    var book models.Book
+    err := bookCollection.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&book)
+    if err != nil {
+        if err == mongo.ErrNoDocuments {
+            http.Error(w, "Book not found", http.StatusNotFound)
+            return
+        }
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(book)
 }
 
 func AddBook(w http.ResponseWriter, r *http.Request) {
+	var book models.Book
+    if err := json.NewDecoder(r.Body).Decode(&book); err != nil {
+        http.Error(w, err.Error(), http.StatusBadRequest)
+        return
+    }
+
+    _, err := bookCollection.InsertOne(context.TODO(), book)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    w.WriteHeader(http.StatusCreated)
+    json.NewEncoder(w).Encode(book)
 }
 
 func UpdateBook(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	var book models.Book
+	if err := json.NewDecoder(r.Body).Decode(&book); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	_, err := bookCollection.UpdateOne(context.TODO(), bson.M{"_id": id}, bson.M{"$set": book})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func DeleteBook(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	_, err := bookCollection.DeleteOne(context.TODO(), bson.M{"_id": id})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func GetAllEmployees(w http.ResponseWriter, r *http.Request) {
-    var employees []models.Employee
+    var employees []models.EmployeeResponse
     cursor, err := employeeCollection.Find(context.TODO(), bson.D{})
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -62,7 +123,11 @@ func GetAllEmployees(w http.ResponseWriter, r *http.Request) {
     for cursor.Next(context.TODO()) {
         var employee models.Employee
         cursor.Decode(&employee)
-        employees = append(employees, employee)
+        employees = append(employees, models.EmployeeResponse{
+			Name : employee.Name,
+			JoinDate : employee.JoinDate,
+			EmploymentStatus: employee.EmploymentStatus,
+		})
     }
     
     w.Header().Set("Content-Type", "application/json")
@@ -70,4 +135,17 @@ func GetAllEmployees(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddEmployee(w http.ResponseWriter, r *http.Request) {
+	var employee models.Employee
+	if err := json.NewDecoder(r.Body).Decode(&employee); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	_, err := employeeCollection.InsertOne(context.TODO(), employee)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
 }
